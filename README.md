@@ -1,3 +1,20 @@
+# Some brief notes about the changes in this fork
+
+This module is fantastic! However I had some problems when using it with webpack (in the context of a sapper application).
+
+These changes were motivated to have better output for browsers. The following problems were detected and corrected:
+
+- the rollup output format for browsers was changed from `format: 'iife'` to the more generic `format: 'umd'` (to avoid problems when using it with webpack);
+- the rollup output for browsers still had references to `require('fs')` (which would cause problems when using that output with webpack); this was corrected by having 2 specific entry points (one for each output): `src/main-node.js` and `src/main-umd.js`;
+- the `dist/node/package.json` and `dist/node/README.md` files were moved to `dist`;
+- the `browser` field was added `dist/package.json`, so that webpack (and similar tools) can choose the more appropriate output; the `main` field was updated accordingly;
+
+Hopefully these changes will be merged in the original repository at https://github.com/Gin-Quin/fast-toml. Until then, the workaround is to install directly from github, as such:
+
+`npm install paulovieira/fast-toml#umd`
+
+The contents below are the original `README.md`.
+
 # Fast TOML Parser for Node.js
 
 `fast-toml` is the fastest and lightest Javascript parser for TOML files (see [benchmarks](https://www.npmjs.com/package/fast-toml#benchmarks)).

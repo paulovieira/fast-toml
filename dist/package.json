@@ -2,7 +2,8 @@
   "name": "fast-toml",
   "version": "0.5.4",
   "description": "Fast and light parser for TOML 0.5, an alternative to JSON or YAML file formats.",
-  "main": "fast-toml.js",
+  "main": "node/fast-toml.js",
+  "browser": "browser/fast-toml.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

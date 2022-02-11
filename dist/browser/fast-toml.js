@@ -1,1 +1,687 @@
-var TOML=function(){"use strict";let e="",t=0;function i(e,t=0){let i;for(;(i=e[t++])&&(" "==i||"\t"==i||"\r"==i););return t-1}function n(e){switch(e[0]){case void 0:return"";case'"':return function(e){let t,i=0,n="";for(;t=e.indexOf("\\",i)+1;){switch(n+=e.slice(i,t-1),e[t]){case"\\":n+="\\";break;case'"':n+='"';break;case"\r":"\n"==e[t+1]&&t++;case"\n":break;case"b":n+="\b";break;case"t":n+="\t";break;case"n":n+="\n";break;case"f":n+="\f";break;case"r":n+="\r";break;case"u":n+=String.fromCharCode(parseInt(e.substr(t+1,4),16)),t+=4;break;case"U":n+=String.fromCharCode(parseInt(e.substr(t+1,8),16)),t+=8;break;default:throw r(e[t])}i=t+1}return n+e.slice(i)}(e.slice(1,-1));case"'":return e.slice(1,-1);case"0":case"1":case"2":case"3":case"4":case"5":case"6":case"7":case"8":case"9":case"+":case"-":case".":let t=e;if(-1!=t.indexOf("_")&&(t=t.replace(/_/g,"")),!isNaN(t))return+t;if("-"==e[4]&&"-"==e[7]){let t=new Date(e);if("Invalid Date"!=t.toString())return t}else if(":"==e[2]&&":"==e[5]&&e.length>=7){let t=new Date("0000-01-01T"+e+"Z");if("Invalid Date"!=t.toString())return t}return e}switch(e){case"true":return!0;case"false":return!1;case"nan":case"NaN":return!1;case"null":return null;case"inf":case"+inf":case"Infinity":case"+Infinity":return 1/0;case"-inf":case"-Infinity":return-1/0}return e}function r(i){let n=function(){let i=e[t],n=t;"\n"==i&&n--;let r=1,s=e.lastIndexOf("\n",n),a=e.indexOf("\n",n);-1==a&&(a=1/0);","!=i&&"\n"!=i||(n=s+1);if(-1==s)return{line:r,column:n+1,position:n,lineContent:e.slice(0,a).trim()};const c=n-s+1,o=e.slice(s+1,a).trim();r++;for(;-1!=(s=e.lastIndexOf("\n",s-1));)r++;return{line:r,column:c,position:n,lineContent:o}}(),r=String(n.line);return i+="\n"+r+" |  "+n.lineContent+"\n",i+=" ".repeat(r.length+n.column+2)+"^",SyntaxError(i)}function s(e,i=0,n=!1){let a,c=e[i],o=c,f=c,l=!0,u=!1;switch(c){case'"':case"'":if(a=i+1,n&&e[i+1]==c&&e[i+2]==c?(f=c+c+c,a+=2):u=!0,"'"==c)a=e.indexOf(f,a)+1;else for(;a=e.indexOf(f,a)+1;){let t=!0,i=a-1;for(;"\\"==e[--i];)t=!t;if(t)break}if(!a)throw r("Missing "+f+" closer");if(c!=f)a+=2;else if(u){let n=e.indexOf("\n",i+1)+1;if(n&&n<a)throw t=n-2,r("Forbidden end-of-line character in single-line string")}return a;case"(":f=")";break;case"{":f="}";break;case"[":f="]";break;case"<":f=">";break;default:l=!1}let h=0;for(;c=e[++i];)if(c==f){if(0==h)return i+1;h--}else if('"'==c||"'"==c){i=s(e,i,n)-1}else l&&c==o&&h++;throw r("Missing "+f)}function a(e){"string"!=typeof e&&(e=String(e));let t,i,n=-1,a="",c=[];for(;i=e[++n];)switch(i){case".":if(!a)throw r('Unexpected "."');c.push(a),a="";continue;case'"':case"'":if(t=s(e,n),t==n+2)throw r("Empty string key");a+=e.slice(n+1,t-1),n=t-1;continue;default:a+=i}return a&&c.push(a),c}function c(e,t=[]){const i=t.pop();for(let i of t){if("object"!=typeof e){throw r('["'+t.slice(0,t.indexOf(i)+1).join('"].["')+'"]'+" must be an object")}void 0===e[i]&&(e[i]={}),(e=e[i])instanceof Array&&(e=e[e.length-1])}return[e,i]}class o{constructor(){this.root={},this.data=this.root,this.inlineScopeList=[]}get isRoot(){return this.data==this.root}set(e,t){let[i,n]=c(this.data,a(e));if("string"==typeof i)throw"Wtf the scope is a string. Please report the bug";if(n in i)throw r(`Re-writing the key '${e}'`);return i[n]=t,t}push(e){if(!(this.data instanceof Array)){if(!this.isRoot)throw r("Missing key");this.data=Object.assign([],this.data),this.root=this.data}return this.data.push(e),this}use(e){return this.data=function(e,t=[]){for(let i of t){if(void 0===e)e=lastData[lastElt]={};else if("object"!=typeof e){throw r('["'+t.slice(0,t.indexOf(i)+1).join('"].["')+'"]'+" must be an object")}void 0===e[i]&&(e[i]={}),(e=e[i])instanceof Array&&(e=e[e.length-1])}return e}(this.root,a(e)),this}useArray(e){let[t,i]=c(this.root,a(e));return this.data={},void 0===t[i]&&(t[i]=[]),t[i].push(this.data),this}enter(e,t){return this.inlineScopeList.push(this.data),this.set(e,t),this.data=t,this}enterArray(e){return this.inlineScopeList.push(this.data),this.push(e),this.data=e,this}exit(){return this.data=this.inlineScopeList.pop(),this}}function f(a){"string"!=typeof a&&(a=String(a));const c=new o,f=[];e=a,t=0;let l,u,h="",d="",p=e[0],w=!0;const g=()=>{if(h=h.trimEnd(),w)h&&c.push(n(h));else{if(!h)throw r("Expected key before =");if(!d)throw r("Expected value after =");c.set(h,n(d.trimEnd()))}h="",d="",w=!0};do{switch(p){case" ":w?h&&(h+=p):d&&(d+=p);case"\t":case"\r":continue;case"#":t=e.indexOf("\n",t+1)-1,-2==t&&(t=1/0);continue;case'"':case"'":if(!w&&d){d+=p;continue}let n=e[t+1]==p&&e[t+2]==p;if(l=s(e,t,!0),w){if(h)throw r("Unexpected "+p);h+=n?e.slice(t+2,l-2):e.slice(t,l),t=l}else d=e.slice(t,l),t=l,n&&(d=d.slice(2,-2),"\n"==d[1]?d=d[0]+d.slice(2):"\r"==d[1]&&"\n"==d[2]&&(d=d[0]+d.slice(3)));if(t=i(e,t),p=e[t],p&&","!=p&&"\n"!=p&&"#"!=p&&"}"!=p&&"]"!=p&&"="!=p)throw r("Unexpected character after end of string");t--;continue;case"\n":case",":case void 0:g();continue;case"[":case"{":if(u="["==p?"]":"}",w&&!f.length){if(h)throw r("Unexpected "+p);if(l=s(e,t),"["==p&&"["==e[t+1]){if("]"!=e[l-2])throw r("Missing ]]");c.useArray(e.slice(t+2,l-2))}else c.use(e.slice(t+1,l-1));t=l}else if(w){if(h)throw r("Unexpected "+p);c.enterArray("["==p?[]:{}),f.push(u)}else{if(d)throw r("Unexpected "+p);c.enter(h.trimEnd(),"["==p?[]:{}),f.push(u),h="",w=!0}continue;case"]":case"}":if(h&&g(),f.pop()!=p)throw r("Unexpected "+p);if(c.exit(),t=i(e,t+1),p=e[t],p&&","!=p&&"\n"!=p&&"#"!=p&&"}"!=p&&"]"!=p)throw r("Unexpected character after end of scope");t--;continue;case"=":if(!w)throw r("Unexpected "+p);if(!h)throw r("Missing key before "+p);w=!1;continue;default:w?h+=p:d+=p}}while((p=e[++t])||h);if(f.length)throw r("Missing "+f.pop());return c.root}let l=null,u=null;function h(){let e="";for(let t of arguments)e+="string"==typeof t?t:t[0];return f(e)}return h.parse=f,h.parseFile=async function(e){if(l||(l=require("fs")),!u){const{promisify:e}=require("util");u=e(l.readFile)}return f(await u(e))},h.parseFileSync=function(e){return l||(l=require("fs")),f(l.readFileSync(e))},h}();
+(function (global, factory) {
+	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+	typeof define === 'function' && define.amd ? define(factory) :
+	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.TOML = factory());
+})(this, (function () { 'use strict';
+
+	let source = "", position = 0;
+
+	/**
+	* Skip whitespaces : [ \t\r]
+	*/
+	function skipWhiteSpaces(str, x=0) {
+		let c;
+		while ((c = str[x++]) && (c == ' ' || c == '\t' || c == '\r'));
+		return x - 1
+	}
+
+
+	/**
+	* Return a true-typed value from a string value.
+	*/
+	function trueValue(val) {
+		switch (val[0]) {
+			case undefined:
+				return ''
+
+			case '"':
+				// let's escape characters
+				return escapeSpecials(val.slice(1, -1))
+			case "'":
+				return val.slice(1, -1)
+
+			case '0':
+			case '1':
+			case '2':
+			case '3':
+			case '4':
+			case '5':
+			case '6':
+			case '7':
+			case '8':
+			case '9':
+			case '+':
+			case '-':
+			case '.':
+				let num = val;
+				if (num.indexOf('_') != -1)
+					num = num.replace(/_/g, '');
+				if (!isNaN(num))
+					return (+num)
+
+				if (val[4] == '-' && val[7] == '-') {
+					let date = new Date(val);
+					if (date.toString() != 'Invalid Date')
+						return date
+				}
+				else if (val[2] == ':' && val[5] == ':' && val.length >= 7) {
+					let date = new Date('0000-01-01T'+val+'Z');
+					if (date.toString() != 'Invalid Date')
+						return date
+				}
+				return val
+		}
+
+		switch (val) {
+			case 'true': return true
+			case 'false': return false
+
+			case 'nan':
+			case 'NaN': return false
+
+			case 'null': return null
+
+			case 'inf':
+			case '+inf':
+			case 'Infinity':
+			case '+Infinity': return Infinity
+			case '-inf':
+			case '-Infinity': return -Infinity
+		}
+
+		return val
+	}
+
+
+	/**
+	* Escape characters from a string
+	*/
+	function escapeSpecials(str) {
+		let i, offset = 0;
+		let result = '';
+
+		while (i = str.indexOf('\\', offset) + 1) {
+			result += str.slice(offset, i-1);
+
+			switch (str[i]) {
+				case '\\':
+				result += '\\';
+				break
+
+				case '"':
+				result += '"';
+				break
+
+				case '\r':
+				if (str[i+1] == '\n')
+					i++;
+				case '\n':
+				break
+
+				case 'b':
+				result += '\b';
+				break
+
+				case 't':
+				result += '\t';
+				break
+
+				case 'n':
+				result += '\n';
+				break
+
+				case 'f':
+				result += '\f';
+				break
+
+				case 'r':
+				result += '\r';
+				break
+
+				case 'u':  // small unicode
+				result += String.fromCharCode(parseInt(str.substr(i+1, 4), 16));
+				i += 4;
+				break
+
+				case 'U':  // big unicode
+				result += String.fromCharCode(parseInt(str.substr(i+1, 8), 16));
+				i += 8;
+				break
+
+				default:
+					throw error(str[i])
+			}
+
+			offset = i + 1;
+		}
+
+		return result + str.slice(offset)
+	}
+
+	/**
+	* Create an error message with information on the line and the column
+	*/
+	function error(msg) {
+		let loc = getLocation();
+		let lineString = String(loc.line);
+		msg += '\n'+lineString+' |  '+loc.lineContent+'\n';
+		msg += ' '.repeat(lineString.length + loc.column + 2) + '^';
+
+		return SyntaxError(msg)
+	}
+
+
+	/**
+	* Return the offset of the closing part of the string fragment.
+	* A string fragment is opened by any character among <[({'"``
+	* The closing characters are respectively >])}'"`
+	* @param swim - indicates if sub-opening and sub-closing characters must me ignored.
+	* For '(())', with swim=false -> '(()', with swim=true -> '(())'
+	* @return - the offset of the closing character + 1
+	*/
+	function fragment(str, x=0, allowTriple=false) {
+		let c = str[x];
+		let end;
+		let start = c, stop = c;
+		let swim = true;
+		let errorOnLineBreak = false;
+
+
+		switch (c) {
+			case '"':
+			case "'":
+				end = x+1;
+				if (allowTriple && str[x+1] == c && str[x+2] == c) {
+					stop = c + c + c;
+					end += 2;
+				}
+				else {
+					errorOnLineBreak = true;
+				}
+
+				// if it's a ' we don't look for escape
+				if (c == "'") {
+					end = str.indexOf(stop, end) + 1;
+				}
+
+				// if it's a " we do look for escape
+				else while (end = str.indexOf(stop, end)+1) {
+					let free = true;
+					let s = end - 1;
+					while (str[--s] == '\\')
+						free = !free;
+					if (free)
+						break
+				}
+
+				if (!end)
+					throw error("Missing " + stop + " closer")
+
+				if (c != stop)
+					end += 2;
+				else if (errorOnLineBreak) {
+					let nextLineBreak = str.indexOf('\n', x+1) +1;
+					if (nextLineBreak && nextLineBreak < end) {
+						position = nextLineBreak - 2;
+						throw error("Forbidden end-of-line character in single-line string")
+					}
+				}
+
+			return end  // 0 if the end has not been found
+
+			case '(':
+				stop = ')';
+				break
+			case '{':
+				stop = '}';
+				break
+			case '[':
+				stop = ']';
+				break
+			case '<':
+				stop = '>';
+				break
+			default:
+				swim = false;
+		}
+
+		// on trouve le délimiteur de stop
+		let depth=0;
+		while (c = str[++x]) {
+			if (c == stop) {
+				if (depth == 0)
+					return x + 1
+				depth--;
+			}
+
+			else if (c == '"' || c == "'") {
+				let end = fragment(str, x, allowTriple);  // we go to the end of the string
+				x = end - 1;
+				// else  // should we throw?
+				// 	throw "Missing "+c  // at position : x
+			}
+			else if (swim && c == start)
+				depth++;
+		}
+
+		throw error("Missing "+stop)
+	}
+
+
+	/**
+	* Return the {column, line, position, lineContent} location object
+	* Read from *source* and *position*
+	*/
+	function getLocation() {
+		let c = source[position];
+		let offset = position;
+		if (c == '\n')
+			offset--;
+		let line = 1;
+		let i = source.lastIndexOf('\n', offset);
+		let stop = source.indexOf('\n', offset);
+		if (stop == -1)
+			stop = Infinity;
+		if (c == ',' || c == '\n')
+			offset = i + 1;
+
+		if (i == -1)
+			return {
+				line,
+				column: offset + 1,
+				position: offset,
+				lineContent: source.slice(0, stop).trim()
+			}
+
+		const column = offset - i + 1;
+		const lineContent = source.slice(i+1, stop).trim();
+		line++;
+
+		while ((i = source.lastIndexOf('\n', i-1)) != -1)
+			line++;
+
+		return {line, column, position: offset, lineContent}
+	}
+
+
+	/**
+	* Split a string scope into elements
+	*/
+	function splitElements(raw) {
+		if (typeof raw != 'string')
+			raw = String(raw);
+		let x = -1;
+		let elt = '';
+		let elements = [];
+		let end;
+		let c;
+
+		while (c = raw[++x]) switch (c) {
+			case '.':
+				if (!elt)
+					throw error('Unexpected "."')
+				elements.push(elt);
+				elt = '';
+			continue
+
+			case '"':
+			case "'":
+				end = fragment(raw, x);
+				if (end == x+2)
+					throw error('Empty string key')
+				elt += raw.slice(x+1, end-1);
+				x = end-1;
+			continue
+
+			default:
+				elt += c;
+		}
+
+		// we add the last one
+		if (elt)
+			elements.push(elt);
+
+		return elements
+	}
+
+
+	/**
+	* Return the given object in data
+	* The result will/must be an object
+	*/
+	function getScope(data, elements=[]) {
+		for (let elt of elements) {
+			if (data === undefined)
+				data = lastData[lastElt] = {};
+
+			else if (typeof data != 'object') {
+				let path = '["'+elements.slice(0, elements.indexOf(elt)+1).join('"].["')+'"]';
+				throw error(path + ' must be an object')
+			}
+
+			if (data[elt] === undefined)
+				data[elt] = {};
+			data = data[elt];
+			if (data instanceof Array)
+				data = data[data.length - 1];
+		}
+
+		return data
+	}
+
+
+	/**
+	* Almost the same, but return a pair [scope, key]
+	*/
+	function getScopeAndKey(data, elements=[]) {
+		const key = elements.pop();
+
+		for (let elt of elements) {
+			if (typeof data != 'object') {
+				let path = '["'+elements.slice(0, elements.indexOf(elt)+1).join('"].["')+'"]';
+				throw error(path + ' must be an object')
+			}
+
+			if (data[elt] === undefined)
+				data[elt] = {};
+			data = data[elt];
+			if (data instanceof Array)
+				data = data[data.length - 1];
+		}
+
+		return [data, key]
+	}
+
+	/**
+	* The class used to manipulate the data
+	*/
+	class Scope {
+		constructor() {
+			this.root = {};
+			this.data = this.root;  // actual object we work with
+			this.inlineScopeList = [];  // list of parent scopes
+		}
+
+		get isRoot() {
+			return this.data == this.root
+		}
+
+		// set a value to the data
+		set(fullKey, val) {
+			let [ scope, key ] = getScopeAndKey(this.data, splitElements(fullKey));
+			if (typeof scope == 'string')
+				throw `Wtf the scope is a string. Please report the bug`
+			if (key in scope)
+				throw error(`Re-writing the key '${fullKey}'`)
+			scope[key] = val;
+			return val
+		}
+
+		// push a value to the data
+		// (transform the mother into an array if it was an object)
+		push(val) {
+			// if the data is not an array, we transform it into an array
+			if (!(this.data instanceof Array)) {
+				if (this.isRoot) {
+					this.data = Object.assign([], this.data);
+					this.root = this.data;
+				}
+				else throw error(`Missing key`)
+			}
+
+			this.data.push(val);
+			return this
+		}
+
+		// use a global scope
+		use(raw) {
+			this.data = getScope(this.root, splitElements(raw));
+			return this
+		}
+
+		// use a global array scope
+		useArray(raw) {
+			let [ scope, key ] = getScopeAndKey(this.root, splitElements(raw));
+			this.data = {};
+			if (scope[key] === undefined)
+				scope[key] = [];
+			scope[key].push(this.data);
+			return this
+		}
+
+		// enter an inline scope
+		enter(raw, value) {
+			this.inlineScopeList.push(this.data);
+			this.set(raw, value);
+			this.data = value;
+			return this
+		}
+
+		// push and enter an inline array scope
+		enterArray(value) {
+			this.inlineScopeList.push(this.data);
+			this.push(value);
+			this.data = value;
+			return this
+		}
+
+		// exit an inline scope
+		exit() {
+			this.data = this.inlineScopeList.pop();
+			return this
+		}
+	}
+
+	function parse(src) {
+		if (typeof src != 'string')
+			src = String(src);
+		const scope = new Scope;
+		const inlineTypes = [];
+
+		source = src;
+		position = 0;
+		let key = '';
+		let val = '';
+		let end, stop;
+		let c = source[0];
+		let defineKey = true;  // first define key, then value
+
+		// add a key[/val] to the data
+		const addKey = () => {
+			key = key.trimEnd();
+
+			if (defineKey) {
+				if (key) scope.push(trueValue(key));
+			}
+			else {
+				if (!key)
+					throw error("Expected key before =")
+				if (!val)
+					throw error("Expected value after =")
+				scope.set(key, trueValue(val.trimEnd()));
+			}
+
+			key = '';
+			val = '';
+			defineKey = true;
+		};
+
+
+
+		// let's start to parse
+		do switch (c) {
+			// useless whitespace
+			case ' ':
+				if (defineKey) {
+					if (key)
+						key += c;
+				}
+				else if (val)
+					val += c;
+			case '\t':
+			case '\r':
+			continue
+
+
+			// comment
+			case '#':
+				position = source.indexOf('\n', position+1) - 1;
+				if (position == -2)
+					position = Infinity;
+			continue
+
+
+
+			case '"':
+			case "'":
+				if (!defineKey && val) {
+					val += c;
+					continue
+				}
+
+				let triple = (source[position+1] == c && source[position+2] == c);
+				end = fragment(source, position, true);
+
+				if (defineKey) {
+					if (key)
+						throw error('Unexpected '+c)
+					if (triple)
+						key += source.slice(position+2, end-2);
+					else
+						key += source.slice(position, end);
+					position = end;
+				}
+
+				else {
+					// else, we define the val
+					val = source.slice(position, end);
+
+					position = end;
+					if (triple) {
+						val = val.slice(2, -2);
+						if (val[1] == '\n')
+							val = val[0] + val.slice(2);
+						else if (val[1] == '\r' && val[2] == '\n')
+							val = val[0] + val.slice(3);
+					}
+				}
+
+				// we then skip whitespaces
+				position = skipWhiteSpaces(source, position);
+				c = source[position];
+
+				// and make sure we meet a valid character
+				if (c && c != ',' && c != '\n' && c !='#' && c !='}' && c !=']' && c != '=')
+					throw error("Unexpected character after end of string")
+
+				position--;
+			continue
+
+
+			// new key
+			case '\n':
+			case ',':
+			case undefined:
+				addKey();
+			continue
+
+
+			// new scope
+			case '[':
+			case '{':
+				stop = (c == '[' ? ']' : '}');
+
+				// use global scope
+				if (defineKey && !inlineTypes.length) {
+					if (key)
+						throw error("Unexpected "+c)
+					end = fragment(source, position);
+
+					// case '[[' -> array of table
+					if (c == '[' && source[position+1] == '[') {
+						if (source[end-2] != ']')
+							throw error("Missing ]]")
+						scope.useArray(source.slice(position+2, end-2));
+					}
+					else
+						scope.use(source.slice(position+1, end-1));
+
+					position = end;
+				}
+
+				// enter inline scope inside inline scope (without value)
+				else if (defineKey) {
+					if (key)
+						throw error("Unexpected "+c)
+					scope.enterArray(c == '[' ? [] : {});
+					inlineTypes.push(stop);
+				}
+
+				// enter inline scope
+				else {
+					if (val)
+						throw error("Unexpected "+c)
+					scope.enter(key.trimEnd(), c == '[' ? [] : {});
+					inlineTypes.push(stop);
+					key = '';
+					defineKey = true;
+				}
+
+			continue
+
+
+			// exit an inline scope
+			case ']':
+			case '}':
+				// we add the last element
+				if (key)
+					addKey();
+
+				if (inlineTypes.pop() != c)
+					throw error("Unexpected "+c)
+				scope.exit();
+
+				position = skipWhiteSpaces(source, position+1);
+				c = source[position];
+
+				if (c && c != ',' && c != '\n' && c !='#' && c !='}' && c !=']')
+					throw error("Unexpected character after end of scope")
+				position--;
+
+			continue
+
+			// assignment
+			case '=':
+				if (defineKey) {
+					if (!key)
+						throw error("Missing key before "+c)
+					defineKey = false;
+				}
+				else
+					throw error("Unexpected "+c)
+			continue
+
+
+
+			// other character
+			default:
+				if (defineKey)
+					key += c;
+				else
+					val += c;
+
+		} while ((c = source[++position]) || key)
+
+		// missing } or ]
+		if (inlineTypes.length)
+			throw error("Missing "+inlineTypes.pop())
+
+		return scope.root
+	}
+
+	/**
+	* Use this function to parse javascript template strings :
+	* let obj = TOML `foo = 12`
+	*/
+	function TOML() {
+		let result = '';
+		for (let arg of arguments)
+			result += typeof arg == 'string'? arg : arg[0];
+		return parse(result)
+	}
+
+	TOML.parse = parse;
+
+	return TOML;
+
+}));
