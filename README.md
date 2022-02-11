@@ -13,6 +13,22 @@ Hopefully these changes will be merged in the original repository at https://git
 
 `npm install paulovieira/fast-toml#umd`
 
+and then use with webpack (or similar tools) using the directly where the actual package is located, that is:
+
+```js
+import TOML from 'fast-toml/dist';  // if using the original package it would be "import TOML from 'fast-toml'"
+
+let obj = TOML.parse(inputInTOMLFormat);
+```
+
+or 
+
+```js
+let TOML = require('fast-toml/dist');  // is usinf the original package it would be "let TOML = require('fast-toml')"
+
+let obj = TOML.parse(inputInTOMLFormat);
+```
+
 The contents below are the original `README.md`.
 
 # Fast TOML Parser for Node.js
